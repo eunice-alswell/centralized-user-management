@@ -11,6 +11,6 @@ namespace backend.DTOs
         public string Role { get; set; } = string.Empty;
         public bool IsActive { get; set; }
 
-        public List<ApplicationModel>? Applications { get; set; }
+        public List<Application>? Applications { get; set; }
     }
 }
