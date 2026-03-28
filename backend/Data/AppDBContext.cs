@@ -53,7 +53,24 @@ public class AppDBContext : DbContext
             .ToTable("user_applications")
             .HasIndex(ua => new { ua.UserId, ua.ApplicationId })
             .IsUnique();
-        
+
+        // Seed default applications
+        modelBuilder.Entity<Application>().HasData(
+            new Application 
+            { 
+                Id = new Guid("550e8400-e29b-41d4-a716-446655440000"),
+                Name = "HR",
+                Description = "Human Resources Management System",
+                CreatedAt = new DateTime(2026, 3, 27, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Application 
+            { 
+                Id = new Guid("550e8400-e29b-41d4-a716-446655440001"),
+                Name = "Accounting",
+                Description = "Accounting and Finance Management System",
+                CreatedAt = new DateTime(2026, 3, 27, 0, 0, 0, DateTimeKind.Utc)
+            }
+        );
     }
 
 
