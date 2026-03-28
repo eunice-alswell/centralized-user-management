@@ -38,6 +38,11 @@ public class LoginService : ILoginService
             throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
+        if (!user.IsActive)
+        {
+            throw new UnauthorizedAccessException("User account is deactivated.");
+        }
+
         return new LoginResponseDto
         {
             Message = "Login successful",

@@ -9,6 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
+
+
 //Load environment variables from .env file
 Env.Load();
 
@@ -34,8 +36,13 @@ builder.Services.AddDbContext<AppDBContext>( options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 builder.Services.AddEndpointsApiExplorer();
+// builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
@@ -66,7 +73,7 @@ builder.Services.AddAuthentication(options =>
 // Configure CORS to allow requests from the React frontend
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowReact", policy =>
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:5174")
             .AllowAnyHeader()
             .AllowAnyMethod()
     );
@@ -103,6 +110,10 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("AllowReact");
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Configure OpenAPI for JWT Bearer
+app.MapOpenApi();
+
 app.MapControllers();
 
 app.Run();

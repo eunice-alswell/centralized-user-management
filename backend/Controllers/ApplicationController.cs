@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace backend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/application")]
 public class ApplicationController(IApplicationService applicationService) : ControllerBase
 /*
     The ApplicationController class is an API controller that handles HTTP requests related to applications. It provides an endpoint for retrieving all applications. The controller uses the IApplicationService to perform the necessary operations and includes error handling for exceptions that may occur during the retrieval process.
@@ -20,7 +20,7 @@ public class ApplicationController(IApplicationService applicationService) : Con
     private readonly IApplicationService _applicationService = applicationService;
 
     [HttpGet]
-    [Authorize]
+    // [Authorize]
     public async Task<IActionResult> GetAllApplications()
     {
         try

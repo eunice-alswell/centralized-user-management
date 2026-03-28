@@ -2,11 +2,12 @@ using backend.DTOs;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace backend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/userapplication")]
 [Authorize]
 public class UserApplicationController(IUserApplicationService userApplicationService) : ControllerBase
 /*
@@ -46,8 +47,21 @@ public class UserApplicationController(IUserApplicationService userApplicationSe
     {
         try
         {
+            // Check authorization: User can only view their own apps or admin can view any
+            var isAdmin = User.IsInRole("Admin");
+            var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            if (!isAdmin && currentUserIdClaim != userId.ToString())
+            {
+                return Forbid();
+            }
+
             var applications = await _userApplicationService.GetUserApplicationsAsync(userId);
-            return Ok(applications);
+            return Ok(new 
+            { 
+                message = "Applications retrieved successfully",
+                data = applications 
+            });
         }
         catch (InvalidOperationException ex)
         {

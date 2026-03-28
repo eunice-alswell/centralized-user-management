@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
-
+// [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user")]
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
