@@ -1,6 +1,6 @@
 # Centralized User Management System
 
-A secure, full-stack user management and authentication system enabling centralized credential management across internal applications with role-based access control.
+This is a secure, full-stack user management and authentication system enabling centralized credential management across internal applications with role-based access control.
 
 ## Technology Stack
 
@@ -10,11 +10,11 @@ A secure, full-stack user management and authentication system enabling centrali
 
 ## Features
 
-- JWT-based authentication with role separation (Admin/User)
+- User creation and deactivation with secure password management
+- Application directory (HR System, Accounting System)
+- User-application assignment and access verification
+- Login API with JWT authentication and role-based authorization
 - Admin console for user and application management
-- User-application assignment with access verification
-- Database-driven application directory
-- Deactivated user account handling
 - Backend-enforced authorization on all operations
 
 ## Quick Setup
@@ -45,26 +45,43 @@ Frontend: `http://localhost:5173`
 
 ## Approach
 
-### Architecture: Authentication Separation
+When I looked at the problem, the main issue was that users had to manage separate credentials for different internal systems like HR and Accounting. This creates inconsistency, duplication, and more support overhead.
 
-The system separates authentication (login) from authorization (access control):
-- **Authentication Layer:** JWT-based login validates user identity and returns token
-- **Authorization Layer:** Backend enforces role-based access; frontend cannot bypass restrictions
-- **Storage Model:** PostgreSQL with User ↔ Application many-to-many relationship
+So my approach was to simplify everything by introducing a centralized user management system where a user exists only once and can be assigned access to different applications from a single place.
 
-This separation ensures backend controls all access decisions. Users obtain a token on login, but application access is independently verified through the backend before any data is returned. No sensitive information is exposed in the frontend.
+I started by designing the system around three core entities:
 
-### Security Model
+- Users
+- Applications
+- User-Application mapping
 
-**Role-Based Access:**
-- **Admin Role:** Can manage users, applications, and assignments through admin console
-- **User Role:** Can only view their assigned applications; gets alert on unsuccessful access verification
-- **Deactivated Users:** Cannot log in regardless of valid credentials
+This allowed me to handle both authentication and access control cleanly.
 
-**Data Protection:**
-- Passwords hashed with BCrypt (12 rounds), never returned in responses
-- All endpoints enforce role-based authorization at controller level
-- User data requests validated against authenticated user identity
+For authentication, I implemented a login system that validates user credentials and returns a JWT token. I also ensured passwords are securely stored using hashing.
+
+For authorization, instead of allowing access by default, I introduced a mapping system where users are explicitly assigned to applications. This way, access is controlled at the backend and not just the UI.
+
+From a structure perspective, I separated concerns using:
+
+- Controllers for API endpoints
+- Services for business logic
+- DTOs for clean data transfer
+
+This made the system easier to maintain and closer to real-world architecture.
+
+I also considered data integrity by:
+
+- Preventing duplicate user-application assignments
+- Enforcing validation at both API and database levels
+
+Finally, I approached the project with a Quality Assurance mindset by defining test cases that cover:
+
+- Successful login
+- Invalid credentials
+- Duplicate assignments
+- Basic security scenarios
+
+Overall, my goal was not just to make the system work, but to design it in a way that is scalable, secure, and easy to manage.
 
 ## Test Coverage
 
