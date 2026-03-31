@@ -58,7 +58,7 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
 
     private static Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
-        var StatusCode = ex switch
+        var statusCode = ex switch
         {
             KeyNotFoundException => HttpStatusCode.NotFound,
             ArgumentException => HttpStatusCode.BadRequest,
@@ -67,15 +67,15 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             _ => HttpStatusCode.InternalServerError
         };
 
-         var response = new
+        var response = new
         {
-            status = (int)StatusCode,
-            Message = "An error occurred while processing your request.",
-            Details = ex.Message
+            status = (int)statusCode,
+            message = ex.Message,
+            details = ex.InnerException?.Message
         };
 
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        context.Response.StatusCode = (int)statusCode;
 
         return context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }

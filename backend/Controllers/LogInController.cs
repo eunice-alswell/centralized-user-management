@@ -26,7 +26,7 @@ public class LogInController : ControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Unauthorized(ex.Message);
+            return Unauthorized(new { message = ex.Message });
         }
     }
 }

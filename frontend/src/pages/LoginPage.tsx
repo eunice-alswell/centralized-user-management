@@ -59,43 +59,58 @@ export default function LoginPage() {
       return;
     }
 
-    // For User role, require application selection
-    if (selectedRole === "User" && !selectedApp) {
-      setGlobalError("Please select a target application");
-      return;
-    }
-
     setIsLoading(true);
     try {
       const response = await authApi.login(formData.email, formData.password);
 
-      // If Admin role, store token and navigate
+      // Store token and user info for both roles
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("user", JSON.stringify(response.user));
+      localStorage.setItem("selectedRole", selectedRole);
+
+      // If Admin role, navigate to admin dashboard
       if (selectedRole === "Admin") {
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("user", JSON.stringify(response.user));
-        localStorage.setItem("selectedRole", selectedRole);
         setSuccessMessage("✓ Successfully signed in as Admin!");
         setTimeout(() => {
           navigate("/admin/users");
         }, 1500);
       } else {
-        // For User role, check access to selected application WITHOUT storing token
-        try {
-          const userApps = await userApplicationApi.getForUser(response.user.id);
-          const hasAccess = userApps.some((app: Application) => app.id === selectedApp);
+        // For User role, check if an app is selected and verify access
+        if (selectedApp) {
+          try {
+            const userApps = await userApplicationApi.getForUser(response.user.id);
+            const hasAccess = userApps.some((app: Application) => app.id === selectedApp);
 
-          if (hasAccess) {
-            const selectedAppName = applications.find(a => a.id === selectedApp)?.name || "Application";
-            alert(`✓ You have access to "${selectedAppName}"`);
-            // Clear form and stay on login page
-            setFormData({ email: "", password: "" });
-            setSelectedApp("");
-          } else {
-            alert(`✗ You don't have access to the selected application. Contact an administrator to request access.`);
+            if (hasAccess) {
+              const selectedAppName = applications.find(a => a.id === selectedApp)?.name || "Application";
+              localStorage.setItem("selectedApp", selectedApp);
+              setSuccessMessage(`✓ Successfully signed in! You have access to "${selectedAppName}"`);
+              setTimeout(() => {
+                navigate("/user/dashboard");
+              }, 1500);
+            } else {
+              // No access to selected app - logout and show error
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              localStorage.removeItem("selectedRole");
+              setGlobalError("You don't have access to the selected application. Contact an administrator to request access.");
+              setFormData({ email: "", password: "" });
+              setSelectedApp("");
+            }
+          } catch (accessErr) {
+            console.error("Failed to check application access:", accessErr);
+            // Clear auth on error
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("selectedRole");
+            setGlobalError("Failed to verify application access. Please try again.");
           }
-        } catch (accessErr) {
-          console.error("Failed to check application access:", accessErr);
-          setGlobalError("Failed to verify application access. Please try again.");
+        } else {
+          // No app selected, go to dashboard
+          setSuccessMessage("✓ Successfully signed in!");
+          setTimeout(() => {
+            navigate("/user/dashboard");
+          }, 1500);
         }
       }
     } catch (error) {
@@ -205,7 +220,7 @@ export default function LoginPage() {
           {selectedRole === "User" && (
             <div>
               <label htmlFor="application" className="block text-sm font-medium text-gray-700">
-                Target Application (Testing)
+                Target Application <span className="text-gray-500 text-xs">(Optional - you can select in your dashboard)</span>
               </label>
               <select
                 id="application"
@@ -214,7 +229,7 @@ export default function LoginPage() {
                 disabled={loadingApps}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
               >
-                <option value="">{loadingApps ? "Loading applications..." : "Select an application"}</option>
+                <option value="">{loadingApps ? "Loading applications..." : "Select an application (optional)"}</option>
                 {applications.map((app) => (
                   <option key={app.id} value={app.id}>
                     {app.name}
